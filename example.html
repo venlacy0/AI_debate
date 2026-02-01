@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>AI 辩论 - 深度思考版</title>
+    <style>
+      :root {
+        /* 核心配色 - 参考现代 AI 助手 */
+        --bg-app: #ffffff;
+        --bg-sidebar: #0f0f0f; /* 深色侧边栏 */
+        --bg-sidebar-hover: #212121;
+        --bg-panel: #ffffff;
+        --bg-msg: #f9f9f9; /* 极淡的灰，用于消息气泡 */
+        --bg-msg-hover: #f0f0f0;
+        
+        /* 文字颜色 */
+        --text-primary: #0d0d0d;
+        --text-secondary: #666666;
+        --text-sidebar: #ececec;
+        --text-sidebar-sub: #9b9b9b;
+
+        /* 强调色 */
+        --accent: #10a37f; /* ChatGPT Green 风格，或者用深黑 */
+        --accent-hover: #0d8a6a;
+        --border-light: rgba(0, 0, 0, 0.08);
+        --border-dark: rgba(255, 255, 255, 0.1);
+
+        /* 阴影与圆角 */
+        --radius-sm: 6px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+        --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        /* 动画曲线 */
+        --ease-spring: cubic-bezier(0.25, 0.8, 0.25, 1);
+        --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+      }
+
+      * { box-sizing: border-box; outline: none; }
+      
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg-app);
+        color: var(--text-primary);
+        height: 100vh;
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* 布局框架 */
+      .appShell {
+        display: flex;
+        height: 100%;
+        width: 100%;
+      }
+
+      /* 侧边栏 - 深色沉浸式 */
+      .sidebar {
+        width: 260px;
+        background-color: var(--bg-sidebar);
+        color: var(--text-sidebar);
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid black;
+        transition: transform 0.3s var(--ease-spring);
+        flex-shrink: 0;
+        z-index: 20;
+      }
+
+      .sidebarTop {
+        padding: 20px 16px;
+      }
+
+      .newChatBtn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border: 1px solid var(--border-dark);
+        background: transparent;
+        color: white;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.2s;
+        text-align: left;
+      }
+
+      .newChatBtn:hover {
+        background: var(--bg-sidebar-hover);
+      }
+
+      .sidebarList {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 12px 20px;
+      }
+      
+      /* 滚动条隐藏但可滚 */
+      .sidebarList::-webkit-scrollbar { width: 4px; }
+      .sidebarList::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+      .sidebarItem {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        margin-bottom: 4px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: background 0.2s;
+        color: var(--text-sidebar);
+        text-decoration: none;
+        position: relative;
+        group;
+      }
+
+      .sidebarItem:hover {
+        background-color: var(--bg-sidebar-hover);
+      }
+
+      .sidebarItem.active {
+        background-color: var(--bg-sidebar-hover);
+        color: #fff;
+      }
+
+      .sidebarItemTitle {
+        font-size: 13.5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+      }
+
+      .deleteBtn {
+        opacity: 0;
+        background: transparent;
+        border: none;
+        color: var(--text-sidebar-sub);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        transition: opacity 0.2s, color 0.2s;
+      }
+      
+      .sidebarItem:hover .deleteBtn {
+        opacity: 1;
+      }
+      .deleteBtn:hover {
+        color: #ff4d4f;
+      }
+
+      /* 主内容区 */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-app);
+        position: relative;
+        min-width: 0;
+      }
+
+      /* 欢迎/输入页 */
+      .centerPane {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .topicCard {
+        width: 100%;
+        max-width: 600px;
+        text-align: center;
+        animation: fadeSlideUp 0.6s var(--ease-out);
+      }
+
+      .topicTitle {
+        font-size: 32px;
+        font-weight: 600;
+        margin-bottom: 24px;
+        color: var(--text-primary);
+      }
+
+      .topicInputWrapper {
+        position: relative;
+        width: 100%;
+      }
+
+      .topicInput {
+        width: 100%;
+        padding: 16px 48px 16px 16px;
+        font-size: 16px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-card);
+        transition: box-shadow 0.2s, border-color 0.2s;
+        background: #fff;
+      }
+
+      .topicInput:focus {
+        border-color: #aaa;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      }
+
+      /* 辩论主界面 */
+      .debatePane {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .debateHeader {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(255,255,255,0.8);
+        backdrop-filter: blur(8px);
+        z-index: 10;
+        position: sticky;
+        top: 0;
+      }
+
+      .debateTitle {
+        font-weight: 600;
+        font-size: 16px;
+      }
+
+      .columns {
+        flex: 1;
+        display: flex;
+        overflow: hidden; /* 内部滚动 */
+        gap: 0;
+      }
+
+      .column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border-light);
+        min-width: 0;
+        background: #fff;
+      }
+      .column:last-child { border-right: none; }
+
+      .columnHead {
+        padding: 16px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-align: center;
+        border-bottom: 1px solid var(--border-light);
+        background: #fafafa;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      
+      .columnHead.pro { color: #2563eb; } /* 蓝色代表一方 */
+      .columnHead.con { color: #d946ef; } /* 紫色代表一方 */
+
+      .columnBody {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        scroll-behavior: smooth;
+      }
+
+      /* 消息气泡 */
+      .msg {
+        margin-bottom: 24px;
+        animation: fadeSlideUp 0.5s var(--ease-out) forwards;
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      @keyframes fadeSlideUp {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .msgMeta {
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* 思考过程 - 仿 OpenAI o1 */
+      .thinkBox {
+        margin-bottom: 12px;
+      }
+
+      .thinkSummary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 13px;
+        background: #f0f0f0;
+        padding: 4px 10px;
+        border-radius: 20px;
+        user-select: none;
+        transition: background 0.2s;
+      }
+      .thinkSummary:hover { background: #e5e5e5; }
+      
+      .thinkIcon {
+        transition: transform 0.3s;
+        width: 14px; height: 14px;
+      }
+      details[open] .thinkIcon { transform: rotate(180deg); }
+
+      .thinkContent {
+        margin-top: 8px;
+        padding-left: 12px;
+        border-left: 2px solid #e0e0e0;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      /* 消息正文 */
+      .msgText {
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--text-primary);
+      }
+      
+      /* 流式光标 */
+      .typing-cursor::after {
+        content: '●';
+        color: var(--text-primary);
+        animation: blink 1s infinite;
+        margin-left: 2px;
+        font-size: 12px;
+      }
+      @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+      /* Markdown 样式微调 */
+      .md p { margin: 0 0 12px 0; }
+      .md p:last-child { margin: 0; }
+      .md blockquote {
+        border-left: 3px solid #ccc;
+        margin: 12px 0;
+        padding-left: 12px;
+        color: #555;
+        font-style: italic;
+      }
+      .md code {
+        background: #f4f4f5;
+        padding: 2px 5px;
+        border-radius: 4px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.9em;
+        color: #c7254e;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      /* 底部操作栏 */
+      .continueBar {
+        padding: 20px;
+        border-top: 1px solid var(--border-light);
+        background: #fff;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        animation: fadeSlideUp 0.3s ease-out;
+      }
+
+      /* 按钮系统 */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 30px; /* 胶囊状 */
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s var(--ease-spring);
+        border: 1px solid var(--border-light);
+        background: #fff;
+        color: var(--text-primary);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+
+      .btn:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background: #f9f9f9;
+      }
+      
+      .btn:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      .btnPrimary {
+        background: #111;
+        color: #fff;
+        border-color: #111;
+      }
+      .btnPrimary:hover:not(:disabled) {
+        background: #333;
+        border-color: #333;
+      }
+
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #f5f5f5;
+      }
+
+      .icon-spin { animation: spin 1s linear infinite; }
+      @keyframes spin { 100% { transform: rotate(360deg); } }
+
+      /* 移动端适配 */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          height: 100%;
+          transform: translateX(-100%);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .columns {
+          flex-direction: column;
+          overflow-y: auto;
+        }
+        .column {
+          border-right: none;
+          border-bottom: 1px solid var(--border-light);
+          flex: none; /* 让内容决定高度 */
+        }
+        .columnBody {
+          max-height: 50vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      ;(() => {
+        // --- 逻辑层 (保持原有核心逻辑，仅微调状态以支持动画) ---
+        const STORAGE_KEY = 'debate_ai_sessions_v2' // 升级版本号以防冲突
+        const ACTIVE_KEY = 'debate_ai_active_id_v2'
+
+        function now() { return Date.now() }
+        function uid() { return (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)) }
+
+        // LocalStorage Helpers
+        function loadSessions() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY)
+            return raw ? JSON.parse(raw) : []
+          } catch { return [] }
+        }
+        function saveSessions(s) { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)) }
+        
+        // Simple MD Renderer
+        function escapeHtml(s) {
+          return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        }
+        function renderMarkdown(md) {
+          const parts = md.split('```');
+          let html = '';
+          parts.forEach((part, i) => {
+            if (i % 2 === 1) { // Code block
+              html += `<pre><code>${escapeHtml(part)}</code></pre>`;
+            } else {
+              // Simple formatting
+              let p = escapeHtml(part)
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/> (.*)(\n|$)/g, '<blockquote>$1</blockquote>')
+                .replace(/\n/g, '<br>');
+              html += `<p>${p}</p>`;
+            }
+          });
+          return html;
+        }
+
+        // --- 视图层 (React-like minimal framework) ---
+        function el(tag, attrs = {}, children = []) {
+          const n = document.createElement(tag);
+          Object.entries(attrs).forEach(([k, v]) => {
+            if (k === 'html') n.innerHTML = v;
+            else if (k.startsWith('on')) n.addEventListener(k.slice(2).toLowerCase(), v);
+            else if (v !== false && v != null) n.setAttribute(k, v);
+          });
+          children.forEach(c => c && n.append(typeof c === 'string' ? document.createTextNode(c) : c));
+          return n;
+        }
+
+        // SVG Icons
+        const Icons = {
+          Plus: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>`,
+          Trash: `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>`,
+          Chevron: `<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>`,
+          Send: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>`,
+          Spinner: `<svg class="icon-spin" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>`
+        }
+
+        // State Management
+        const state = {
+          sessions: loadSessions().sort((a, b) => b.updatedAt - a.updatedAt),
+          activeId: localStorage.getItem(ACTIVE_KEY),
+          running: false,
+          streamingIds: new Set() // Track which messages are actively streaming for cursor effect
+        }
+
+        if (!state.sessions.length) createNewSession();
+
+        function createNewSession() {
+          const s = { id: uid(), title: '', createdAt: now(), updatedAt: now(), messages: [] };
+          state.sessions.unshift(s);
+          setActive(s.id);
+        }
+
+        function setActive(id) {
+          state.activeId = id;
+          localStorage.setItem(ACTIVE_KEY, id);
+          render();
+        }
+
+        function deleteSession(e, id) {
+          e.stopPropagation();
+          if(!confirm('确定删除此话题？')) return;
+          state.sessions = state.sessions.filter(s => s.id !== id);
+          if(state.activeId === id) setActive(state.sessions[0]?.id || null);
+          saveSessions(state.sessions);
+          render();
+        }
+
+        // opts: { save?: boolean, render?: boolean }
+        function updateSession(id, patch, opts) {
+          const o = opts || {};
+          const doSave = o.save !== false;
+          const doRender = o.render !== false;
+
+          state.sessions = state.sessions.map(s => s.id === id ? { ...s, ...patch, updatedAt: now() } : s);
+          if (doSave) saveSessions(state.sessions);
+          if (doRender) render();
+        }
+
+        // --- 局部 DOM 更新：避免流式过程整页重绘导致闪烁 ---
+        const pendingMsgIds = new Set();
+        let rafId = 0;
+
+        function scheduleMsgDomUpdate(msgId) {
+          pendingMsgIds.add(msgId);
+          if (rafId) return;
+          rafId = requestAnimationFrame(() => {
+            rafId = 0;
+            pendingMsgIds.forEach(applyMsgDomUpdate);
+            pendingMsgIds.clear();
+          });
+        }
+
+        function applyMsgDomUpdate(msgId) {
+          const session = state.sessions.find(x => x.id === state.activeId);
+          if (!session) return;
+          const msg = session.messages.find(m => m.id === msgId);
+          if (!msg) return;
+
+          const node = document.querySelector(`[data-msg-id="${msgId}"]`);
+          if (!node) return;
+
+          const isStreaming = state.streamingIds.has(msgId);
+          const hasReasoning = !!(msg.reasoning && msg.reasoning.length);
+
+          const thinkBox = node.querySelector('.thinkBox');
+          const thinkContent = node.querySelector('.thinkContent');
+          const msgText = node.querySelector('.msgText');
+
+          if (thinkBox && thinkContent) {
+            if (hasReasoning) {
+              thinkBox.classList.remove('hidden');
+              if (isStreaming) thinkBox.setAttribute('open', '');
+              thinkContent.innerHTML = renderMarkdown(msg.reasoning);
+            } else {
+              thinkBox.classList.add('hidden');
+              thinkContent.innerHTML = '';
+              thinkBox.removeAttribute('open');
+            }
+          }
+
+          if (msgText) {
+            msgText.innerHTML = renderMarkdown(msg.content || '');
+            if (isStreaming && !hasReasoning) msgText.classList.add('typing-cursor');
+            else msgText.classList.remove('typing-cursor');
+          }
+        }
+
+        // --- 核心业务逻辑：模拟AI生成 ---
+        async function runRound() {
+          const s = state.sessions.find(x => x.id === state.activeId);
+          if(!s || state.running) return;
+
+          state.running = true;
+          const round = Math.floor(s.messages.length / 2) + 1;
+          
+          // 初始化空消息
+          const proId = uid(), conId = uid();
+          const newMsgs = [
+            { id: proId, side: 'pro', round, content: '', reasoning: '', createdAt: now() },
+            { id: conId, side: 'con', round, content: '', reasoning: '', createdAt: now() }
+          ];
+          
+          updateSession(s.id, { messages: [...s.messages, ...newMsgs] });
+          render(); // 立即渲染出空气泡
+
+          // 模拟生成内容
+          const proContent = `**关于第 ${round} 轮的核心论点**：\n\n如果我们将视角拉高，会发现这个问题的本质是效率与伦理的博弈。> 数据显示，类似的技术引入通常会带来短期阵痛，但长期收益显著。\n\n所以我的建议是：**大胆推进，但在关键节点设置熔断机制**。`;
+          const conContent = `我必须直接反驳对方的“效率至上论”。\n\n这不仅仅是数字游戏，这是关于**人**的。如果我们忽略了微观个体的感受，所谓的“长期收益”就没有地基。\n\n请问对方：\n1. 谁来承担短期阵痛？\n2. 熔断机制的触发标准由谁制定？`;
+          const reasoning = `分析对方上一轮的逻辑漏洞... 提取关键反驳点... 构建修辞策略...`;
+
+          // 流式输出辅助
+          async function streamText(msgId, field, text) {
+            state.streamingIds.add(msgId);
+            const step = field === 'reasoning' ? 5 : 15;
+            for(let i=0; i <= text.length; i+=Math.floor(Math.random()*3)+1) {
+              const currentText = text.slice(0, i);
+              const session = state.sessions.find(x => x.id === state.activeId);
+              const msgs = session.messages.map(m => m.id === msgId ? {...m, [field]: currentText} : m);
+              // 流式过程中：只更新数据 + 局部 DOM（不整页 render），避免“一闪一闪”
+              updateSession(session.id, { messages: msgs }, { save: false, render: false });
+              scheduleMsgDomUpdate(msgId);
+              await new Promise(r => setTimeout(r, step));
+            }
+          }
+
+          // 执行序列
+          await streamText(proId, 'reasoning', reasoning);
+          await streamText(proId, 'content', proContent);
+          state.streamingIds.delete(proId);
+          scheduleMsgDomUpdate(proId);
+          
+          await new Promise(r => setTimeout(r, 400)); // 模拟思考间隙
+
+          await streamText(conId, 'reasoning', reasoning);
+          await streamText(conId, 'content', conContent);
+          state.streamingIds.delete(conId);
+          scheduleMsgDomUpdate(conId);
+
+          state.running = false;
+          saveSessions(state.sessions);
+          render();
+          
+          // 自动滚动到底部
+          setTimeout(() => {
+            document.querySelectorAll('.columnBody').forEach(el => el.scrollTop = el.scrollHeight);
+          }, 100);
+        }
+
+        // --- 组件渲染 ---
+        
+        function Sidebar() {
+          return el('aside', { class: 'sidebar' }, [
+            el('div', { class: 'sidebarTop' }, [
+              el('button', { class: 'newChatBtn', onClick: createNewSession }, [
+                el('span', { html: Icons.Plus }), '新话题'
+              ])
+            ]),
+            el('div', { class: 'sidebarList' }, 
+              state.sessions.map(s => el('div', { 
+                class: `sidebarItem ${s.id === state.activeId ? 'active' : ''}`,
+                onClick: () => setActive(s.id)
+              }, [
+                el('div', { class: 'sidebarItemTitle' }, [s.title || '新话题']),
+                el('button', { class: 'deleteBtn', title: '删除', onClick: (e) => deleteSession(e, s.id) }, [
+                  el('span', { html: Icons.Trash })
+                ])
+              ]))
+            )
+          ]);
+        }
+
+        function TopicInput(session) {
+          return el('div', { class: 'centerPane' }, [
+            el('div', { class: 'topicCard' }, [
+              el('div', { class: 'topicTitle' }, ['想辩论什么话题？']),
+              el('div', { class: 'topicInputWrapper' }, [
+                el('input', { 
+                  class: 'topicInput', 
+                  placeholder: '输入话题，例如：AI 是否会取代程序员...',
+                  autofocus: true,
+                  onKeydown: (e) => {
+                    if(e.key === 'Enter' && e.target.value.trim()) {
+                      updateSession(session.id, { title: e.target.value });
+                    }
+                  }
+                })
+              ])
+            ])
+          ]);
+        }
+
+        function MessageBubble(msg) {
+          const isStreaming = state.streamingIds.has(msg.id);
+          const hasReasoning = msg.reasoning && msg.reasoning.length > 0;
+          
+          return el('div', { class: 'msg', 'data-msg-id': msg.id }, [
+            el('div', { class: 'msgMeta' }, [`第 ${msg.round} 轮`]),
+            
+            // 思考折叠区
+            el('details', { class: `thinkBox ${hasReasoning ? '' : 'hidden'}`, open: isStreaming }, [
+              el('summary', { class: 'thinkSummary' }, [
+                el('span', { class: 'thinkIcon', html: Icons.Chevron }),
+                '思考过程'
+              ]),
+              el('div', { class: 'thinkContent md', html: hasReasoning ? renderMarkdown(msg.reasoning) : '' })
+            ]),
+
+            // 正文区
+            el('div', { class: `msgText md ${isStreaming && !msg.reasoning ? 'typing-cursor' : ''}`, html: renderMarkdown(msg.content) })
+          ]);
+        }
+
+        function DebateView(session) {
+          const pros = session.messages.filter(m => m.side === 'pro');
+          const cons = session.messages.filter(m => m.side === 'con');
+          const round = Math.floor(session.messages.length / 2);
+          
+          return el('div', { class: 'debatePane' }, [
+            el('header', { class: 'debateHeader' }, [
+              el('div', { class: 'debateTitle' }, [session.title]),
+              // 这里可以放导出按钮等
+            ]),
+            el('div', { class: 'columns' }, [
+              el('div', { class: 'column' }, [
+                el('div', { class: 'columnHead pro' }, ['正方观点']),
+                el('div', { class: 'columnBody' }, pros.map(MessageBubble))
+              ]),
+              el('div', { class: 'column' }, [
+                el('div', { class: 'columnHead con' }, ['反方观点']),
+                el('div', { class: 'columnBody' }, cons.map(MessageBubble))
+              ])
+            ]),
+            el('div', { class: 'continueBar' }, [
+              el('button', { 
+                class: 'btn btnPrimary', 
+                disabled: state.running,
+                onClick: runRound 
+              }, [
+                state.running ? el('span', { html: Icons.Spinner }) : el('span', { html: Icons.Send }),
+                state.running ? '辩论进行中...' : (round === 0 ? '开始辩论' : `开始第 ${round + 1} 轮`)
+              ])
+            ])
+          ]);
+        }
+
+        function render() {
+          const root = document.getElementById('root');
+          root.innerHTML = ''; // Full re-render (React style simple replacement)
+          
+          const session = state.sessions.find(s => s.id === state.activeId);
+          
+          const app = el('div', { class: 'appShell' }, [
+            Sidebar(),
+            el('main', { class: 'main' }, [
+              !session ? el('div') : // Should allow creating new
+              (!session.title ? TopicInput(session) : DebateView(session))
+            ])
+          ]);
+          
+          root.appendChild(app);
+        }
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
