@@ -9,10 +9,10 @@ export default function Sidebar(props: {
   onSelect: (id: string) => void
   onDelete: (id: string) => void
 }): JSX.Element {
-  function shortTitle(title: string) {
+  function displayTitle(title: string) {
     const t = (title || '').trim()
     if (!t) return '未命名话题'
-    return t.length > 6 ? `${t.slice(0, 6)}…` : t
+    return t
   }
 
   return (
@@ -44,9 +44,9 @@ export default function Sidebar(props: {
                 <button
                   type="button"
                   className="sidebarItemMain"
-                  title={s.title}
+                  title={displayTitle(s.title)}
                 >
-                  <div className="sidebarItemTitle">{shortTitle(s.title)}</div>
+                  <div className="sidebarItemTitle">{displayTitle(s.title)}</div>
                 </button>
                 <button
                   type="button"

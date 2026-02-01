@@ -8,10 +8,10 @@ function sideLabel(side: Side) {
   return side === 'pro' ? '正方' : '反方'
 }
 
-function shortTitle(title: string) {
+function displayTitle(title: string) {
   const t = (title || '').trim()
   if (!t) return '未命名话题'
-  return t.length > 6 ? `${t.slice(0, 6)}…` : t
+  return t
 }
 
 function splitThinking(text: string): { thinking: string | null; answer: string } {
@@ -206,8 +206,8 @@ export default function DebateView(props: {
   return (
     <div className="debatePane">
       <header className="debateHeader">
-        <div className="debateTitle" title={props.session.title}>
-          {shortTitle(props.session.title)}
+        <div className="debateTitle" title={displayTitle(props.session.title)}>
+          {displayTitle(props.session.title)}
         </div>
       </header>
 
