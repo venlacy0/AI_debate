@@ -214,7 +214,7 @@ export default function DebateView(props: {
       {error ? <div className="alert">出错了：{error}</div> : null}
 
       <div className="columns">
-        <section className="column">
+        <section className="column proCol">
           <div className="columnHead pro">正方观点</div>
           <div className="columnBody">
             {proMessages.length === 0 ? (
@@ -261,7 +261,7 @@ export default function DebateView(props: {
           </div>
         </section>
 
-        <section className="column">
+        <section className="column conCol">
           <div className="columnHead con">反方观点</div>
           <div className="columnBody">
             {conMessages.length === 0 ? (

@@ -1,11 +1,12 @@
 :root {
   /* Theme aligned with example.html (no glass / no high-transparency blur) */
-  --bg-app: #ffffff;
+  /* Paper-ish neutral theme: avoid large pure-white surfaces */
+  --bg-app: #f3f1ea;
   --bg-sidebar: #0f0f0f;
   --bg-sidebar-hover: #212121;
-  --bg-panel: #ffffff;
-  --bg-msg: #f9f9f9;
-  --bg-msg-hover: #f0f0f0;
+  --bg-panel: #fbfaf6;
+  --bg-panel-soft: #f6f4ee;
+  --bg-msg-hover: #efede6;
 
   --text-primary: #0d0d0d;
   --text-secondary: #666666;
@@ -16,6 +17,9 @@
   --accent-hover: #0d8a6a;
   --border-light: rgba(0, 0, 0, 0.08);
   --border-dark: rgba(255, 255, 255, 0.1);
+
+  --pro: #2563eb;
+  --con: #ef4444;
 
   --radius-sm: 6px;
   --radius-md: 12px;
@@ -56,6 +60,10 @@ body {
 button,
 input {
   font: inherit;
+}
+
+::selection {
+  background: rgba(16, 163, 127, 0.22);
 }
 
 /* Layout */
@@ -207,6 +215,11 @@ input {
   max-width: 600px;
   text-align: center;
   animation: fadeSlideUp 0.6s var(--ease-out);
+  padding: 22px 18px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-light);
 }
 
 .topicTitle {
@@ -234,9 +247,9 @@ input {
   font-size: 16px;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
   transition: box-shadow 0.2s, border-color 0.2s;
-  background: #ffffff;
+  background: var(--bg-panel);
   resize: none;
   overflow: hidden;
   line-height: 1.6;
@@ -244,7 +257,7 @@ input {
 
 .topicInput:focus {
   border-color: rgba(0, 0, 0, 0.22);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
 }
 
 /* Debate */
@@ -260,7 +273,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
+  background: var(--bg-panel);
   z-index: 10;
   position: sticky;
   top: 0;
@@ -289,7 +302,7 @@ input {
   flex-direction: column;
   border-right: 1px solid var(--border-light);
   min-width: 0;
-  background: #ffffff;
+  background: var(--bg-panel);
 }
 
 .column:last-child {
@@ -301,19 +314,19 @@ input {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-secondary);
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid var(--border-light);
-  background: #fafafa;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  background: var(--bg-panel-soft);
 }
 
 .columnHead.pro {
-  color: #2563eb;
+  color: var(--pro);
+  border-top: 3px solid rgba(37, 99, 235, 0.45);
 }
 
 .columnHead.con {
-  color: #ef4444;
+  color: var(--con);
+  border-top: 3px solid rgba(239, 68, 68, 0.45);
 }
 
 .columnBody {
@@ -329,6 +342,24 @@ input {
   animation: fadeSlideUp 0.5s var(--ease-out) forwards;
   opacity: 0;
   transform: translateY(15px);
+  padding: 12px 12px 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-left-width: 3px;
+  background: transparent;
+  transition: background 0.18s var(--ease-out), border-color 0.18s var(--ease-out);
+}
+
+.msg:hover {
+  background: var(--bg-msg-hover);
+}
+
+.proCol .msg {
+  border-left-color: rgba(37, 99, 235, 0.6);
+}
+
+.conCol .msg {
+  border-left-color: rgba(239, 68, 68, 0.6);
 }
 
 @keyframes fadeSlideUp {
@@ -342,8 +373,6 @@ input {
   font-size: 12px;
   color: #999999;
   margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .roundDivider {
@@ -375,7 +404,7 @@ input {
   cursor: pointer;
   color: var(--text-secondary);
   font-size: 13px;
-  background: #f0f0f0;
+  background: rgba(0, 0, 0, 0.06);
   padding: 4px 10px;
   border-radius: 20px;
   user-select: none;
@@ -384,7 +413,7 @@ input {
 }
 
 .thinkSummary:hover {
-  background: #e5e5e5;
+  background: rgba(0, 0, 0, 0.09);
 }
 
 .thinkIcon {
@@ -400,7 +429,7 @@ details[open] .thinkIcon {
 .thinkContent {
   margin-top: 8px;
   padding-left: 12px;
-  border-left: 2px solid #e0e0e0;
+  border-left: 2px solid rgba(0, 0, 0, 0.12);
   color: #666666;
   font-size: 13px;
   line-height: 1.6;
@@ -448,7 +477,7 @@ details[open] .thinkIcon {
 }
 
 .md code {
-  background: #f4f4f5;
+  background: rgba(0, 0, 0, 0.06);
   padding: 2px 5px;
   border-radius: 4px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -456,11 +485,19 @@ details[open] .thinkIcon {
   color: #c7254e;
 }
 
+.emptyMsg {
+  padding: 12px 12px;
+  border: 1px dashed rgba(0, 0, 0, 0.16);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.03);
+}
+
 /* Bottom bar */
 .continueBar {
   padding: 20px;
   border-top: 1px solid var(--border-light);
-  background: #ffffff;
+  background: var(--bg-panel);
   display: flex;
   justify-content: center;
   gap: 16px;
@@ -491,7 +528,7 @@ details[open] .thinkIcon {
   cursor: pointer;
   transition: all 0.2s var(--ease-spring);
   border: 1px solid var(--border-light);
-  background: #ffffff;
+  background: var(--bg-panel);
   color: var(--text-primary);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
@@ -527,10 +564,22 @@ details[open] .thinkIcon {
 .alert {
   margin: 12px 24px 0;
   border: 1px solid rgba(180, 35, 24, 0.25);
-  background: rgba(180, 35, 24, 0.07);
+  background: rgba(180, 35, 24, 0.08);
   color: #5a1f1f;
   padding: 10px 12px;
   border-radius: var(--radius-md);
+}
+
+.btn:focus-visible,
+.newChatBtn:focus-visible,
+.sidebarItem:focus-visible,
+.topicInput:focus-visible {
+  outline: 3px solid rgba(16, 163, 127, 0.24);
+  outline-offset: 2px;
+}
+
+.sidebarItem:focus-visible {
+  outline-offset: 0;
 }
 
 .spin {
@@ -551,8 +600,20 @@ details[open] .thinkIcon {
     overflow: auto;
   }
 
+  .appShell {
+    flex-direction: column;
+    overflow: auto;
+  }
+
   .sidebar {
-    display: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.8);
+    max-height: 42vh;
+  }
+
+  .sidebarList {
+    padding: 0 12px 12px;
   }
 
   .columns {
