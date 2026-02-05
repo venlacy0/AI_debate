@@ -161,14 +161,17 @@ input {
   margin: 0;
   cursor: pointer;
   flex: 1;
+  min-width: 0;
   text-align: left;
 }
 
 .sidebarItemTitle {
+  display: block;
   font-size: 13.5px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .deleteBtn {
